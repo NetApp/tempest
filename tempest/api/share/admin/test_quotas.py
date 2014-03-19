@@ -21,12 +21,12 @@ from tempest import test
 CONF = config.CONF
 
 
-class SharesQuotasTest(base.BaseSharesAdminTest):
+class SharesAdminQuotasTest(base.BaseSharesAdminTest):
 
     @classmethod
     def setUpClass(cls):
         cls.os = clients.AdminManager(interface=cls._interface)
-        super(SharesQuotasTest, cls).setUpClass()
+        super(SharesAdminQuotasTest, cls).setUpClass()
 
         # Get tenant and user
         cls.identity_client = cls._get_identity_admin_client()
@@ -34,43 +34,6 @@ class SharesQuotasTest(base.BaseSharesAdminTest):
             cls.shares_client.auth_params["tenant"])
         cls.user = cls.identity_client.get_user_by_username(
             cls.tenant["id"], cls.shares_client.auth_params["user"])
-
-    @test.attr(type=["gate", "smoke", ])
-    def test_limits_keys(self):
-
-        # list limits
-        resp, limits = self.shares_client.get_limits()
-
-        # verify response
-        self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
-
-        keys = ["rate", "absolute"]
-        [self.assertIn(key, limits.keys()) for key in keys]
-
-        abs_keys = [
-            "maxTotalShareGigabytes",
-            "maxTotalShares",
-            "maxTotalSnapshots",
-            "maxTotalShareNetworks",
-        ]
-        [self.assertIn(key, limits["absolute"].keys()) for key in abs_keys]
-
-    @test.attr(type=["gate", "smoke", ])
-    def test_limits_values(self):
-
-        # list limits
-        resp, limits = self.shares_client.get_limits()
-
-        # verify response
-        self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
-
-        # verify integer values for absolute limits
-        self.assertGreater(int(limits["absolute"]["maxTotalShareGigabytes"]),
-                           -2)
-        self.assertGreater(int(limits["absolute"]["maxTotalShares"]), -2)
-        self.assertGreater(int(limits["absolute"]["maxTotalSnapshots"]), -2)
-        self.assertGreater(int(limits["absolute"]["maxTotalShareNetworks"]),
-                           -2)
 
     @test.attr(type=["gate", "smoke", ])
     def test_default_quotas(self):
@@ -108,7 +71,7 @@ class SharesQuotasTest(base.BaseSharesAdminTest):
         self.assertTrue(len(body) > 0)
 
 
-class SharesQuotasUpdateTest(base.BaseSharesAdminTest):
+class SharesAdminQuotasUpdateTest(base.BaseSharesAdminTest):
 
     force_tenant_isolation = True
 

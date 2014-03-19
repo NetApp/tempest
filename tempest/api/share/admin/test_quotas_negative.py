@@ -24,14 +24,14 @@ from tempest import test
 CONF = config.CONF
 
 
-class SharesQuotasNegativeTest(base.BaseSharesAdminTest):
+class SharesAdminQuotasNegativeTest(base.BaseSharesAdminTest):
 
     force_tenant_isolation = True
 
     @classmethod
     def setUpClass(cls):
         cls.os = clients.AdminManager(interface=cls._interface)
-        super(SharesQuotasNegativeTest, cls).setUpClass()
+        super(SharesAdminQuotasNegativeTest, cls).setUpClass()
 
         # Get tenant and user
         cls.identity_client = cls._get_identity_admin_client()
@@ -42,26 +42,27 @@ class SharesQuotasNegativeTest(base.BaseSharesAdminTest):
 
     @test.attr(type=["gate", "smoke", "negative"])
     @testtools.skip("Skip until Bug #1234244 is fixed")
-    def test_quotas_with_wrong_tenant_id(self):
+    def test_get_quotas_with_wrong_tenant_id(self):
         self.assertRaises(exceptions.NotFound,
-                          self.shares_client.get_quotas, "wrong_tenant_id")
+                          self.shares_client.show_quotas,
+                          "wrong_tenant_id")
 
     @test.attr(type=["gate", "smoke", "negative"])
     @testtools.skip("Skip until Bug #1234244 is fixed")
-    def test_quotas_with_wrong_user_id(self):
+    def test_get_quotas_with_wrong_user_id(self):
         self.assertRaises(exceptions.NotFound,
-                          self.shares_client.get_quotas,
+                          self.shares_client.show_quotas,
                           self.tenant["id"],
                           "wrong_user_id")
 
     @test.attr(type=["gate", "smoke", "negative"])
-    def test_quotas_with_empty_tenant_id(self):
+    def test_get_quotas_with_empty_tenant_id(self):
         self.assertRaises(exceptions.NotFound,
                           self.shares_client.show_quotas, "")
 
     @test.attr(type=["gate", "smoke", "negative"])
     @testtools.skip("Skip until Bug #1233170 is fixed")
-    def test_default_quotas_with_wrong_tenant_id(self):
+    def test_get_default_quotas_with_wrong_tenant_id(self):
         self.assertRaises(exceptions.NotFound,
                           self.shares_client.default_quotas, "wrong_tenant_id")
 
