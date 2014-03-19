@@ -48,11 +48,12 @@ class SharesClient(rest_client.RestClient):
         return CONF.share.endpoint_type
 
     def create_share(self, share_protocol=None, size=1,
-                     name=None, snapshot_id=None,
-                     description="tempest created share",
+                     name=None, snapshot_id=None, description=None,
                      metadata={}, share_network_id=None):
         if name is None:
             name = rand_name("tempest-created-share")
+        if description is None:
+            description = rand_name("tempest-created-share-desc")
         if share_protocol is None:
             share_protocol = self.share_protocol
         if share_protocol is None:
@@ -123,11 +124,12 @@ class SharesClient(rest_client.RestClient):
         body = json.dumps(post_body)
         return self.post("shares/%s/action" % share_id, body)
 
-    def create_snapshot(self, share_id, name=None,
-                        description="tempest created share-ss",
+    def create_snapshot(self, share_id, name=None, description=None,
                         force=False):
         if name is None:
             name = rand_name("tempest-created-share-snap")
+        if description is None:
+            description = rand_name("tempest-created-share-snap-desc")
         post_body = {
             "snapshot": {
                 "name": name,
@@ -356,8 +358,10 @@ class SharesClient(rest_client.RestClient):
 
 ###############
 
-    def _update_metadata(self, share_id, metadata={}, method="post"):
+    def _update_metadata(self, share_id, metadata=None, method="post"):
         uri = "shares/%s/metadata" % share_id
+        if metadata is None:
+            metadata = {}
         post_body = {"metadata": metadata}
         body = json.dumps(post_body)
         if method is "post":
@@ -366,10 +370,10 @@ class SharesClient(rest_client.RestClient):
             resp, metadata = self.put(uri, body)
         return resp, self._parse_resp(metadata)
 
-    def set_metadata(self, share_id, metadata={}):
+    def set_metadata(self, share_id, metadata=None):
         return self._update_metadata(share_id, metadata)
 
-    def update_all_metadata(self, share_id, metadata={}):
+    def update_all_metadata(self, share_id, metadata=None):
         return self._update_metadata(share_id, metadata, method="put")
 
     def delete_metadata(self, share_id, key):
