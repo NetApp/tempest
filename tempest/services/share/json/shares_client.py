@@ -64,7 +64,7 @@ class SharesClient(rest_client.RestClient):
                 "snapshot_id": snapshot_id,
                 "name": name,
                 "size": size,
-                "metadata": metadata
+                "metadata": metadata,
             }
         }
         if CONF.share.multitenancy_enabled:
@@ -102,7 +102,7 @@ class SharesClient(rest_client.RestClient):
         post_body = {
             "os-allow_access": {
                 "access_type": access_type,
-                "access_to": access_to
+                "access_to": access_to,
             }
         }
         body = json.dumps(post_body)
@@ -117,7 +117,7 @@ class SharesClient(rest_client.RestClient):
     def delete_access_rule(self, share_id, rule_id):
         post_body = {
             "os-deny_access": {
-                "access_id": rule_id
+                "access_id": rule_id,
             }
         }
         body = json.dumps(post_body)
@@ -133,7 +133,7 @@ class SharesClient(rest_client.RestClient):
                 "name": name,
                 "force": force,
                 "description": description,
-                "share_id": share_id
+                "share_id": share_id,
             }
         }
         body = json.dumps(post_body)
@@ -239,23 +239,26 @@ class SharesClient(rest_client.RestClient):
             uri += "?user_id=%s" % user_id
         return self.delete(uri)
 
-    def update_quotas(self, tenant_id, user_id=None,
-                      shares=None, snapshots=None,
-                      gigabytes=None, force=True):
-        put_body = {"quota_set": {}}
-        put_body["quota_set"]["tenant_id"] = tenant_id
-        if force:
-            put_body["quota_set"]["force"] = "true"
-        if shares is not None:
-            put_body["quota_set"]["shares"] = shares
-        if snapshots is not None:
-            put_body["quota_set"]["snapshots"] = snapshots
-        if gigabytes is not None:
-            put_body["quota_set"]["gigabytes"] = gigabytes
-        put_body = json.dumps(put_body)
+    def update_quotas(self, tenant_id, user_id=None, shares=None,
+                      snapshots=None, gigabytes=None, share_networks=None,
+                      force=True):
         uri = "os-quota-sets/%s" % tenant_id
         if user_id is not None:
             uri += "?user_id=%s" % user_id
+
+        put_body = {"tenant_id": tenant_id}
+        if force:
+            put_body["force"] = "true"
+        if shares is not None:
+            put_body["shares"] = shares
+        if snapshots is not None:
+            put_body["snapshots"] = snapshots
+        if gigabytes is not None:
+            put_body["gigabytes"] = gigabytes
+        if share_networks is not None:
+            put_body["share_networks"] = share_networks
+        put_body = json.dumps({"quota_set": put_body})
+
         resp, body = self.put(uri, put_body)
         return resp, self._parse_resp(body)
 
@@ -459,7 +462,7 @@ class SharesClient(rest_client.RestClient):
         # action: add, remove
         data = {
             "%s_security_service" % action: {
-                "security_service_id": ss_id
+                "security_service_id": ss_id,
             }
         }
         body = json.dumps(data)

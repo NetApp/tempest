@@ -14,7 +14,6 @@
 #    under the License.
 
 import inspect
-import time
 
 from tempest import clients_share as clients
 from tempest.common import isolated_creds

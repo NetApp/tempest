@@ -13,13 +13,13 @@
 #    License for the specific language governing permissions and limitations
 #    under the License.
 
+import testtools
+
 from tempest.api.share import base
 from tempest import clients_share as clients
 from tempest import config_share as config
 from tempest import exceptions
 from tempest import test
-
-import testtools
 
 CONF = config.CONF
 
@@ -99,6 +99,15 @@ class SharesQuotasNegativeTest(base.BaseSharesAdminTest):
                           gigabytes=-2)
 
     @test.attr(type=["gate", "smoke", "negative"])
+    def test_update_share_networks_quota_with_wrong_data(self):
+        # -1 is acceptable value as unlimited
+        client = self.get_client_with_isolated_creads()
+        self.assertRaises(exceptions.BadRequest,
+                          client.update_quotas,
+                          client.creds["tenant"]["id"],
+                          share_networks=-2)
+
+    @test.attr(type=["gate", "smoke", "negative"])
     def test_create_share_with_size_bigger_than_quota(self):
         client = self.get_client_with_isolated_creads()
         new_quota = 25
@@ -160,3 +169,18 @@ class SharesQuotasNegativeTest(base.BaseSharesAdminTest):
                           client.creds["tenant"]["id"],
                           client.creds["user"]["id"],
                           gigabytes=bigger_value)
+
+    @test.attr(type=["gate", "smoke", "negative"])
+    def test_try_set_user_quota_share_networks_bigger_than_tenant_quota(self):
+        client = self.get_client_with_isolated_creads()
+
+        # get current quotas for tenant
+        __, tenant_quotas = client.show_quotas(client.creds["tenant"]["id"])
+
+        # try set user quota for share_networks bigger than tenant quota
+        bigger_value = int(tenant_quotas["share_networks"]) + 2
+        self.assertRaises(exceptions.BadRequest,
+                          client.update_quotas,
+                          client.creds["tenant"]["id"],
+                          client.creds["user"]["id"],
+                          share_networks=bigger_value)
