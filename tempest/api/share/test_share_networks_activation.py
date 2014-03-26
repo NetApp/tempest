@@ -20,7 +20,7 @@ from tempest import test
 
 
 class SharenetworkActivationTest(base.BaseSharesTest):
-    """For testing activation of share-networks
+    """For testing activation of share-networks.
 
     Here all test cases were combined in one test method,
     because its too expensive to activate new share-network
