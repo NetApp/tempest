@@ -91,18 +91,6 @@ class BaseSharesTest(test.BaseTestCase):
             client.creds["tenant"]["id"],
             client.auth_params["user"])
 
-        # Set quotas before tests
-        value = 1000
-        client.update_quotas(client.creds["tenant"]["id"],
-                             shares=value,
-                             snapshots=value,
-                             gigabytes=value)
-        client.update_quotas(client.creds["tenant"]["id"],
-                             client.creds["user"]["id"],
-                             shares=value,
-                             snapshots=value,
-                             gigabytes=value)
-
         # Set place where will be deleted isolated creds
         ic_res = {
             "method": ic.clear_isolated_creds,
