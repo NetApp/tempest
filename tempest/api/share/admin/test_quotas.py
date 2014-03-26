@@ -185,7 +185,7 @@ class SharesAdminQuotasUpdateTest(base.BaseSharesAdminTest):
         self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
         new_quota = int(quotas["share_networks"]) + 2
 
-        # set new quota for shares
+        # set new quota for share-networks
         resp, updated = client.update_quotas(client.creds["tenant"]["id"],
                                              share_networks=new_quota)
         self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
@@ -201,7 +201,7 @@ class SharesAdminQuotasUpdateTest(base.BaseSharesAdminTest):
         self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
         new_quota = int(quotas["share_networks"]) - 1
 
-        # set new quota for shares
+        # set new quota for share-networks
         resp, updated = client.update_quotas(client.creds["tenant"]["id"],
                                              client.creds["user"]["id"],
                                              share_networks=new_quota)
