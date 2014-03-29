@@ -36,6 +36,10 @@ class SharesQuotasTest(base.BaseSharesTest):
             "maxTotalShares",
             "maxTotalSnapshots",
             "maxTotalShareNetworks",
+            "totalSharesUsed",
+            "totalSnapshotsUsed",
+            "totalShareNetworksUsed",
+            "totalGigabytesUsed",
         ]
         [self.assertIn(key, limits["absolute"].keys()) for key in abs_keys]
 
@@ -49,9 +53,12 @@ class SharesQuotasTest(base.BaseSharesTest):
         self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
 
         # verify integer values for absolute limits
-        self.assertGreater(int(limits["absolute"]["maxTotalShareGigabytes"]),
-                           -2)
-        self.assertGreater(int(limits["absolute"]["maxTotalShares"]), -2)
-        self.assertGreater(int(limits["absolute"]["maxTotalSnapshots"]), -2)
-        self.assertGreater(int(limits["absolute"]["maxTotalShareNetworks"]),
-                           -2)
+        abs_l = limits["absolute"]
+        self.assertGreater(int(abs_l["maxTotalShareGigabytes"]), -2)
+        self.assertGreater(int(abs_l["maxTotalShares"]), -2)
+        self.assertGreater(int(abs_l["maxTotalSnapshots"]), -2)
+        self.assertGreater(int(abs_l["maxTotalShareNetworks"]), -2)
+        self.assertGreater(int(abs_l["totalSharesUsed"]), -2)
+        self.assertGreater(int(abs_l["totalSnapshotsUsed"]), -2)
+        self.assertGreater(int(abs_l["totalShareNetworksUsed"]), -2)
+        self.assertGreater(int(abs_l["totalGigabytesUsed"]), -2)
