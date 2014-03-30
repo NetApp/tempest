@@ -69,7 +69,7 @@ class SharesClient(rest_client.RestClient):
             }
         }
         if share_network_id:
-             post_body["share"]["share_network_id"] = share_network_id
+            post_body["share"]["share_network_id"] = share_network_id
         body = json.dumps(post_body)
         resp, body = self.post("shares", body)
         return resp, self._parse_resp(body)
