@@ -121,10 +121,9 @@ class SharesAdminQuotasNegativeTest(base.BaseSharesAdminTest):
 
         # try schedule share with size, bigger than gigabytes quota
         self.assertRaises(exceptions.OverLimit,
-                          self.create_share_wait_for_active,
-                          client=client,
+                          client.create_share,
                           size=overquota,
-                          share_network_id=client.share_network_id)
+                          share_network_id="", )
 
     @test.attr(type=["gate", "smoke", "negative"])
     def test_try_set_user_quota_shares_bigger_than_tenant_quota(self):

@@ -68,13 +68,8 @@ class SharesClient(rest_client.RestClient):
                 "metadata": metadata,
             }
         }
-        if CONF.share.multitenancy_enabled:
-            if share_network_id:
-                post_body["share"]["share_network_id"] = share_network_id
-            elif self.share_network_id:
-                post_body["share"]["share_network_id"] = self.share_network_id
-            else:
-                raise share_exceptions.ShareNetworkNotSpecified()
+        if share_network_id:
+             post_body["share"]["share_network_id"] = share_network_id
         body = json.dumps(post_body)
         resp, body = self.post("shares", body)
         return resp, self._parse_resp(body)

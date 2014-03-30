@@ -42,7 +42,9 @@ class SharenetworkActivationTest(base.BaseSharesTest):
         client = self.get_client_with_isolated_creads(type_of_creds="admin")
 
         # Try create share with inactive share-network
-        self.assertRaises(exceptions.BadRequest, client.create_share)
+        self.assertRaises(exceptions.BadRequest,
+                          client.create_share,
+                          share_network_id=client.share_network_id, )
 
         # Activate share-network
         resp, __ = client.activate_share_network(client.share_network_id)
@@ -70,7 +72,9 @@ class SharenetworkActivationTest(base.BaseSharesTest):
                                              "inactive")
 
         # Try create share with inactive share-network
-        self.assertRaises(exceptions.BadRequest, client.create_share)
+        self.assertRaises(exceptions.BadRequest,
+                          client.create_share,
+                          share_network_id=client.share_network_id, )
 
         # Verify that no shares exist
         resp, shares = client.list_shares()
