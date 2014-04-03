@@ -37,9 +37,9 @@ class SharesQuotasTest(base.BaseSharesTest):
             "maxTotalSnapshots",
             "maxTotalShareNetworks",
             "totalSharesUsed",
-            "totalSnapshotsUsed",
+            "totalShareSnapshotsUsed",
             "totalShareNetworksUsed",
-            "totalGigabytesUsed",
+            "totalShareGigabytesUsed",
         ]
         [self.assertIn(key, limits["absolute"].keys()) for key in abs_keys]
 
@@ -59,6 +59,6 @@ class SharesQuotasTest(base.BaseSharesTest):
         self.assertGreater(int(abs_l["maxTotalSnapshots"]), -2)
         self.assertGreater(int(abs_l["maxTotalShareNetworks"]), -2)
         self.assertGreater(int(abs_l["totalSharesUsed"]), -2)
-        self.assertGreater(int(abs_l["totalSnapshotsUsed"]), -2)
+        self.assertGreater(int(abs_l["totalShareSnapshotsUsed"]), -2)
         self.assertGreater(int(abs_l["totalShareNetworksUsed"]), -2)
-        self.assertGreater(int(abs_l["totalGigabytesUsed"]), -2)
+        self.assertGreater(int(abs_l["totalShareGigabytesUsed"]), -2)
