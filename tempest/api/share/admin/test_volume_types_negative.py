@@ -48,35 +48,35 @@ class VolumeTypesAdminNegativeTest(base.BaseSharesAdminTest):
                           vt["id"])
 
     @test.attr(type=["gate", "smoke", ])
-    def test_create_with_nonexistent_volume_type(self):
+    def test_create_share_with_nonexistent_volume_type(self):
         self.assertRaises(exceptions.NotFound,
                           self.create_share_wait_for_active,
                           volume_type_id=data_utils.rand_name("fake"))
 
     @test.attr(type=["gate", "smoke", ])
-    def test_create_with_empty_name(self):
+    def test_create_volume_type_with_empty_name(self):
         self.assertRaises(exceptions.BadRequest, self.create_volume_type, '')
 
     @test.attr(type=["gate", "smoke", ])
-    def test_create_with_too_big_name(self):
+    def test_create_volume_type_with_too_big_name(self):
         self.assertRaises(exceptions.BadRequest,
                           self.create_volume_type,
                           "x" * 256)
 
     @test.attr(type=["gate", "smoke", ])
-    def test_get_nonexistent_type_id(self):
+    def test_get_volume_type_by_nonexistent_id(self):
         self.assertRaises(exceptions.NotFound,
                           self.shares_client.get_volume_type,
                           data_utils.rand_name("fake"))
 
     @test.attr(type=["gate", "smoke", ])
-    def test_delete_nonexistent_type_id(self):
+    def test_try_delete_volume_type_by_nonexistent_id(self):
         self.assertRaises(exceptions.NotFound,
                           self.shares_client.delete_volume_type,
                           data_utils.rand_name("fake"))
 
     @test.attr(type=["gate", "smoke", ])
-    def test_try_create_duplicate(self):
+    def test_try_create_duplicate_of_volume_type(self):
         vt = self._create_volume_type()
         self.assertRaises(exceptions.Conflict,
                           self.create_volume_type,

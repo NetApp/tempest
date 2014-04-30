@@ -82,19 +82,41 @@ class ExtraSpecsAdminNegativeTest(base.BaseSharesAdminTest):
 
     @test.attr(type=["gate", "smoke", ])
     def test_try_set_too_long_key(self):
-        key = "k" * 256
+        too_big_key = "k" * 256
         vt = self._create_volume_type()
         self.assertRaises(exceptions.BadRequest,
                           self.shares_client.create_volume_type_extra_specs,
-                          vt["id"], {key: "value"})
+                          vt["id"], {too_big_key: "value"})
 
     @test.attr(type=["gate", "smoke", ])
-    def test_try_set_too_long_value(self):
-        value = "v" * 256
+    def test_try_set_too_long_value_with_creation(self):
+        too_big_value = "v" * 256
         vt = self._create_volume_type()
         self.assertRaises(exceptions.BadRequest,
                           self.shares_client.create_volume_type_extra_specs,
-                          vt["id"], {"key": value})
+                          vt["id"], {"key": too_big_value})
+
+    @test.attr(type=["gate", "smoke", ])
+    def test_try_set_too_long_value_with_update(self):
+        too_big_value = "v" * 256
+        vt = self._create_volume_type()
+        resp, body = self.shares_client.create_volume_type_extra_specs(
+            vt["id"], {"key": "value"})
+        self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
+        self.assertRaises(exceptions.BadRequest,
+                          self.shares_client.update_volume_type_extra_specs,
+                          vt["id"], {"key": too_big_value})
+
+    @test.attr(type=["gate", "smoke", ])
+    def test_try_set_too_long_value_with_update_of_one_key(self):
+        too_big_value = "v" * 256
+        vt = self._create_volume_type()
+        resp, body = self.shares_client.create_volume_type_extra_specs(
+            vt["id"], {"key": "value"})
+        self.assertIn(int(resp["status"]), test.HTTP_SUCCESS)
+        self.assertRaises(exceptions.BadRequest,
+                          self.shares_client.update_volume_type_extra_spec,
+                          vt["id"], "key", too_big_value)
 
     @test.attr(type=["gate", "smoke", ])
     def test_try_list_es_with_empty_vol_type_id(self):
