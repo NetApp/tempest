@@ -270,7 +270,7 @@ class SharesClient(rest_client.RestClient):
         """Verifies deleted resource or not.
 
         :param kwargs: expected keys are 'share_id', 'rule_id',
-        :param kwargs: 'snapshot_id', 'sn_id', 'ss_id'
+        :param kwargs: 'snapshot_id', 'sn_id', 'ss_id' and 'vt_id'
         :raises share_exceptions.InvalidResource
         """
 
@@ -358,6 +358,16 @@ class SharesClient(rest_client.RestClient):
         body = {"os-reset_status": {"status": status}}
         body = json.dumps(body)
         return self.post("%s/%s/action" % (s_type, s_id), body)
+
+###############
+
+    def list_services(self, params=None):
+        """List services."""
+        uri = 'os-services'
+        if params:
+            uri += '?%s' % urllib.urlencode(params)
+        resp, body = self.get(uri)
+        return resp, self._parse_resp(body)
 
 ###############
 
