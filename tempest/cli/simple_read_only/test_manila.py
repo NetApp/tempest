@@ -44,6 +44,12 @@ class SimpleReadOnlyManilaClientTest(manilaclient.ClientTestBase):
         roles = self.parser.listing(self.manila('absolute-limits'))
         self.assertTableStruct(roles, ['Name', 'Value'])
 
+    def test_manila_volume_types_list(self):
+        self.manila('type-list')
+
+    def test_manila_extra_specs_list(self):
+        self.manila('extra-specs-list')
+
     def test_manila_shares_list(self):
         self.manila('list')
 
@@ -58,6 +64,24 @@ class SimpleReadOnlyManilaClientTest(manilaclient.ClientTestBase):
 
     def test_manila_endpoints(self):
         self.manila('endpoints')
+
+    def test_manila_service_list(self):
+        self.manila('service-list')
+
+    def test_manila_service_list_with_host_param(self):
+        self.manila('service-list', params='--host host')
+
+    def test_manila_service_list_with_binary_param(self):
+        self.manila('service-list', params='--binary binary')
+
+    def test_manila_service_list_with_zone_param(self):
+        self.manila('service-list', params='--zone zone')
+
+    def test_manila_service_list_with_status_param(self):
+        self.manila('service-list', params='--status status')
+
+    def test_manila_service_list_with_state_param(self):
+        self.manila('service-list', params='--state state')
 
     def test_manila_quota_class_show(self):
         """This CLI can accept and string as param."""
