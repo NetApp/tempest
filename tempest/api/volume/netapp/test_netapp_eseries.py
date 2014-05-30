@@ -17,8 +17,10 @@ import base64
 import binascii
 import ConfigParser
 import json
+import os
 import random
 import requests
+import time
 import uuid
 
 from tempest.api.volume import base
@@ -125,11 +127,12 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
         self.nova_client.wait_for_server_status(server['id'], 'ACTIVE')
         return server
 
-    def _create_volume(self, size=1):
+    def _create_volume(self, size=1, **kwargs):
         """Create a cinder volume."""
         vol_name = data_utils.rand_name('Volume')
         resp, volume = self.cinder_client.create_volume(size,
-                                                        display_name=vol_name)
+                                                        display_name=vol_name,
+                                                        **kwargs)
         self.addCleanup(self.cinder_client.delete_volume, volume['id'])
         self.assertEqual(202, resp.status)
         self.cinder_client.wait_for_volume_status(volume['id'], 'available')
@@ -240,6 +243,16 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
                                                    % volume_id)
         self.assertEqual(server_id, volume['attachments'][0]['server_id'])
 
+    def _create_volume_from_image(self, image_id, size=1):
+        """Create a cinder volume."""
+        vol_name = data_utils.rand_name('Volume')
+        resp, volume = self.cinder_client.create_volume(size,
+                                                        display_name=vol_name,
+                                                        imageRef=image_id)
+        self.addCleanup(self.cinder_client.delete_volume, volume['id'])
+        self.assertEqual(202, resp.status)
+        return volume
+
     def test_tc1_attach_lun_while_already_mapped(self):
         """Attach a pre-mapped lun to a nova instance."""
         server = self._create_server()
@@ -254,6 +267,16 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
         self._create_lun_mapping(volume)
         image = self._upload_to_image(volume)
         self._verify_image(image['image_id'])
+
+    def test_tc13_concurrent_create_from_images(self):
+        """Creates 2 volumes from a 1g image concurrently."""
+        base_vol = self._create_volume()
+        image = self._upload_to_image(base_vol)
+        vol1 = self._create_volume_from_image(image['image_id'])
+        time.sleep(5)
+        vol2 = self._create_volume_from_image(image['image_id'])
+        self.cinder_client.wait_for_volume_status(vol1['id'], 'available')
+        self.cinder_client.wait_for_volume_status(vol2['id'], 'available')
 
 
 def encode_hex_to_base32(hex_string):
