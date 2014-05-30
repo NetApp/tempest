@@ -98,8 +98,8 @@ class TestCopyOffload(base.BaseVolumeV2Test):
                              'glance volume could not be found or created on '
                              'server %s vserver %s'
                              % (self.server, self.vserver))
-        self.filer.unmount_volume('glance')
-        self.filer.mount_volume('glance')
+        self.filer.unmount_volume(self.vserver, 'glance')
+        self.filer.mount_volume(self.vserver, 'glance')
         try:
             self.vserver_ip = random.choice(
                 self.filer.get_vserver_data_ips(self.vserver))

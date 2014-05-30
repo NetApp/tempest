@@ -44,11 +44,19 @@ class NetappFiler:
                % (vserver, vol_name, target_aggr, vol_size))
         self.ssh_cmd(cmd)
 
+    def delete_qos_policy(self, qosPolicy):
+        cmd = ("policy-group delete -policy-group %s" % qosPolicy)
+        self._ssh_yes_cmd(cmd)
+
+    def create_qos_policy(self, qosPolicy, vserver):
+        cmd = ("policy-group create -policy-group %s -vserver %s "
+               "-max-throughput 500MB" % (qosPolicy, vserver))
+        self.ssh_cmd(cmd)
+
     def create_set_QOS_policy(self, qosPolicy, vserver, vol_name):
         cmds = []
         # create policy-group
-        cmds.append("policy-group create -policy-group %s -vserver %s "
-                    "-max-throughput 500MB" %(qosPolicy, vserver))
+        self.create_qos_policy(qosPolicy, vserver)
         #apply policy group to a volume
         cmds.append("vol modify -vserver %s -volume %s -qos-policy-group %s"
                     % (vserver, vol_name, qosPolicy))
@@ -105,17 +113,15 @@ class NetappFiler:
     def _is_vol_mirrored(self, vserver, vol_name):
         source_path = '%s:%s' %(vserver, vol_name)
         cmd = 'snapmirror show -S %s' %(source_path)
-        print (cmd)
+        #print (cmd)
         stdin, stdout, stderr = self.client.exec_command(cmd)
         stdin.close()
         stdout = stdout.readlines()
         for line in stdout:
-            print (line)
-        for line in stdout:
             if source_path in line:
                 # If entries are returned find the destination path
-                for line in stdout:
-                    words = line.split()
+                for lines in stdout:
+                    words = lines.split()
                     for word in words:
                         if '%s_mirror_target' %(vol_name) in word:
                             return word
@@ -175,8 +181,7 @@ class NetappFiler:
             self.set_compression(vserver, vol_name)
         if thin:
             self.set_thin(vserver, vol_name)
-        if mirrored and ((mirror_vserver is not None) and (mirror_vserver is
-                                                           not vserver)):
+        if mirrored and mirror_vserver is not None:
                 self.mirror_vol(vserver, mirror_vserver, vol_name, vol_size,
                                 mirror_aggr)
         if qosPolicy is not None:
@@ -205,21 +210,20 @@ class NetappFiler:
             self.ssh_cmd(cmd)
             mirror = mirror.split(':')
             self._delete_volume(mirror[0], mirror[1])
-        self.unmount_volume(vol_name)
+        self.unmount_volume(vserver, vol_name)
         return self._delete_volume(vserver, vol_name)
 
     def get_vserver_aggrs(self, vserver):
         """Return a list of aggregates assigned to a given vserver."""
 
         aggrs = []
-        cmd = 'vserver show -vserver %s -aggr-list *' %vserver
+        cmd = 'vserver show -vserver %s -fields aggregate' %vserver
         rtn = self.ssh_cmd(cmd)
-        for line in rtn:
-            if 'List of Aggregates Assigned:' in line:
-                aggrs = line.split(':')[-1]
-                aggrs = aggrs.split(',')
-                for idx, aggr in enumerate(aggrs):
-                    aggrs[idx] = aggr.strip()
+        for line in rtn[2:]:
+            aggr = line.split()
+            if len(aggr) == 2:
+                if aggr[0] == vserver:
+                    aggrs.append(aggr[1])
         return aggrs
 
     def get_vserver_data_ips(self, vserver):
@@ -279,15 +283,36 @@ class NetappFiler:
                 volume[words[0].strip()] = words[1].strip()
         return volume
 
-    def mount_volume(self, vol_name, mount=None):
+    def mount_volume(self, vserver, vol_name, mount=None):
         """Mounts a volume, junction path defaults to /vol_name."""
 
         if mount is None:
             mount = '/%s' %vol_name
-        cmd = ('volume mount -volume %s -junction-path %s' %(vol_name, mount))
+        cmd = ('volume mount -vserver %s -volume %s -junction-path %s'
+               % (vserver, vol_name, mount))
         self.ssh_cmd(cmd)
 
-    def unmount_volume(self, vol_name):
+    def unmount_volume(self, vserver, vol_name):
         """Unmounts a volume."""
-        cmd = ('volume unmount -volume %s' %vol_name)
+        cmd = ('volume unmount -vserver %s -volume %s' % (vserver, vol_name))
         self.ssh_cmd(cmd)
+
+    def _is_vsroot(self, vserver, vol_name):
+        cmd = 'set diag -confirmations off; '
+        cmd += 'vol show -vserver %s -volume %s -fields vsroot; ' % (vserver,
+                                                                     vol_name)
+        cmd += 'set admin'
+        lines = self.ssh_cmd(cmd)
+        for line in lines:
+            vol = line.split()
+            if len(vol) == 3:
+                if vol[1] == vol_name and vol[2] == 'true':
+                    return True
+        return False
+
+    def delete_all_volumes(self, vserver):
+        """Delete all volumes on given vserver."""
+        vols = self.get_vserver_volumes(vserver)
+        for vol in vols:
+            if not self._is_vsroot(vserver, vol):
+                self.delete_volume(vserver, vol)
