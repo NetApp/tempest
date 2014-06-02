@@ -8,6 +8,7 @@ devstack environment.
 @author: Andrew D. Kerr
 """
 
+import os
 import subprocess
 
 import paramiko
@@ -82,7 +83,8 @@ def stop_cinder_volume():
         return
     pids = pids.splitlines()
     for pid in pids:
-        subprocess.call(['kill', pid])
+        subprocess.call(['kill', pid], stdout=open(os.devnull),
+                        stderr=open(os.devnull))
 
 
 def restart_cinder_volume():
@@ -105,7 +107,8 @@ def stop_cinder_scheduler():
         return
     pids = pids.splitlines()
     for pid in pids:
-        subprocess.call(['kill', pid])
+        subprocess.call(['kill', pid], stdout=open(os.devnull),
+                        stderr=open(os.devnull))
 
 
 def restart_cinder_scheduler():
@@ -128,7 +131,8 @@ def stop_cinder_backup():
         return
     pids = pids.splitlines()
     for pid in pids:
-        subprocess.call(['kill', pid])
+        subprocess.call(['kill', pid], stdout=open(os.devnull),
+                        stderr=open(os.devnull))
 
 
 def restart_cinder_backup():
@@ -151,7 +155,8 @@ def stop_cinder_api():
         return
     pids = pids.splitlines()
     for pid in pids:
-        subprocess.call(['kill', pid])
+        subprocess.call(['kill', pid], stdout=open(os.devnull),
+                        stderr=open(os.devnull))
 
 
 def restart_cinder_api():
@@ -174,7 +179,8 @@ def stop_glance_api():
         return
     pids = pids.splitlines()
     for pid in pids:
-        subprocess.call(['kill', pid])
+        subprocess.call(['kill', pid], stdout=open(os.devnull),
+                        stderr=open(os.devnull))
 
 
 def start_glance_api():
@@ -197,7 +203,8 @@ def stop_glance_reg():
         return
     pids = pids.splitlines()
     for pid in pids:
-        subprocess.call(['kill', pid])
+        subprocess.call(['kill', pid], stdout=open(os.devnull),
+                        stderr=open(os.devnull))
 
 
 def start_glance_reg():

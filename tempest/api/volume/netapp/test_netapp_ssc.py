@@ -90,9 +90,9 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
                              user=self.sql_user,
                              passwd=self.sql_pwd,
                              db='cinder')
-        self.addCleanup(db.close())
+        self.addCleanup(db.close)
         cursor = db.cursor()
-        self.addCleanup(cursor.close())
+        self.addCleanup(cursor.close)
         return cursor
 
     def _get_volume_location(self, vol_id):
@@ -124,12 +124,11 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
                                                         )
         self.assertEqual(200, resp.status)
         self.assertIn('id', vol_type)
-        print vol_type
         self.addCleanup(self._delete_volume_type, vol_type['id'])
 
     def _create_vol_of_type(self, type_name):
         """Create volume with a specific volume-type."""
-        vol_name = data_utils.rand_name("volume-")
+        vol_name = data_utils.rand_name("volume")
         resp, volume = self.volumes_client.create_volume(size=1,
                                                          display_name=vol_name,
                                                          volume_type=type_name)
@@ -141,7 +140,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
 
     def _create_vol_of_type_neg(self, type_name):
         """Create volume with a specific volume-type."""
-        vol_name = data_utils.rand_name("volume-")
+        vol_name = data_utils.rand_name("volume")
         resp, volume = self.volumes_client.create_volume(size=1,
                                                          display_name=vol_name,
                                                          volume_type=type_name)
@@ -238,11 +237,12 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
 
     def test_ssc_netapp_mirrored_neg(self):
         """Negative test for netapp_mirrored."""
+        name = 'mirrored'
         self.addCleanup(self._restart_cinder)
         self._create_honeypot()
         self._update_nfs_shares('honeypot', honeypot=False)
         self._restart_cinder()
-        self._ssc_test_negative('mirrored', **{'netapp_mirrored': 'true'})
+        self._ssc_test_negative(name, **{'netapp_mirrored': 'true'})
 
     def test_ssc_netapp_unmirrored(self):
         """Test netapp_unmirrored."""
@@ -257,12 +257,13 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
 
     def test_ssc_netapp_unmirrored_neg(self):
         """Negative test for netapp_unmirrored."""
+        name = 'unmirrored'
         self.addCleanup(self._restart_cinder)
         self._create_honeypot(mirror_aggr=self.aggr, mirrored=True,
                               mirror_vserver=self.vserver)
         self._update_nfs_shares('honeypot', honeypot=False)
         self._restart_cinder()
-        self._ssc_test_negative('unmirrored', **{'netapp_unmirrored': 'true'})
+        self._ssc_test_negative(name, **{'netapp_unmirrored': 'true'})
 
     def test_ssc_netapp_dedup(self):
         """Test netapp_dedup."""

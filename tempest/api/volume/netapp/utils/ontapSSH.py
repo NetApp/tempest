@@ -97,16 +97,16 @@ class NetappFiler:
         cmds = []
         # create mirror in other vserver based on existing volume.
         # autocreates target vol name
-        mirror_vol="%s_mirror_target" %(vol_name)
+        mirror_vol="%s_mirror_target" % (vol_name)
         cmds.append("volume create -vserver %s -volume %s -aggregate %s "
-                    "-size %s -state online -type RW -policy default "
-                    "-unix-permissions ---rwxr-xr-x -space-guarantee volume "
-                    "-snapshot-policy default -foreground true "
-                    "-antivirus-on-access-policy default -autosize true"
+                    "-size %s -state online -type DP"
                     %(mirror_vserver, mirror_vol, mirror_aggr, vol_size))
         cmds.append("snapmirror create -source-path  %s:%s "
-                    "-destination-path  %s:%s"
-                    %(vserver, vol_name, mirror_vserver, mirror_vol))
+                    "-destination-path  %s:%s -schedule 5min"
+                    % (vserver, vol_name, mirror_vserver, mirror_vol))
+        cmds.append("snapmirror initialize -source-path %s:%s "
+                    "-destination-path %s:%s" % (vserver, vol_name,
+                                                 mirror_vserver, mirror_vol))
         for cmd in cmds:
             self.ssh_cmd(cmd)
 
@@ -182,8 +182,9 @@ class NetappFiler:
         if thin:
             self.set_thin(vserver, vol_name)
         if mirrored and mirror_vserver is not None:
-                self.mirror_vol(vserver, mirror_vserver, vol_name, vol_size,
-                                mirror_aggr)
+            self.mirror_vol(vserver, mirror_vserver, vol_name, vol_size,
+                            mirror_aggr)
+            self.mount_volume(vserver, vol_name)
         if qosPolicy is not None:
             self.create_set_QOS_policy(qosPolicy, vserver, vol_name)
 
@@ -206,7 +207,10 @@ class NetappFiler:
         while self._is_vol_mirrored(vserver, vol_name) is not False:
             mirror = self._is_vol_mirrored(vserver, vol_name)
             cmd = ("snapmirror delete -S %s:%s -destination-path %s "
-                   "-foreground true" %(vserver, vol_name, mirror))
+                   "-foreground true" % (vserver, vol_name, mirror))
+            self.ssh_cmd(cmd)
+            cmd = ("snapmirror release -source-path %s:%s *" % (vserver,
+                                                                vol_name))
             self.ssh_cmd(cmd)
             mirror = mirror.split(':')
             self._delete_volume(mirror[0], mirror[1])
@@ -287,7 +291,7 @@ class NetappFiler:
         """Mounts a volume, junction path defaults to /vol_name."""
 
         if mount is None:
-            mount = '/%s' %vol_name
+            mount = '/%s' % vol_name
         cmd = ('volume mount -vserver %s -volume %s -junction-path %s'
                % (vserver, vol_name, mount))
         self.ssh_cmd(cmd)
