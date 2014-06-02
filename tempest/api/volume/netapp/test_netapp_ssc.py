@@ -97,10 +97,21 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
 
     def _get_volume_location(self, vol_id):
         """Returns the provider_location for a volume."""
-        cur = self._get_db_cursor()
-        cur.execute("SELECT provider_location FROM volumes WHERE id='%s'"
-                    % vol_id)
-        volume_location = str(cur.fetchone()[0])
+        volume_location = ''
+        if self.protocol == 'nfs':
+            cur = self._get_db_cursor()
+            cur.execute("SELECT provider_location FROM volumes WHERE id='%s'"
+                        % vol_id)
+            volume_location = str(cur.fetchone()[0])
+        elif self.protocol == 'iscsi':
+            # iscsi vols show as NULL in cinder db, must check filer
+            luns = self.filer.ssh_cmd('lun show -vserver %s' % self.vserver)
+            for lun in luns[2:]:
+                lun = lun.split()
+                if len(lun) >= 2:
+                    if vol_id in lun[1]:
+                        volume_location = lun[1]
+                        break
         return volume_location
 
     def _wait_for_volume_status_change(self, volume_id, status):
