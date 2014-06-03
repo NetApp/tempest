@@ -235,7 +235,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         nfs_file.close()
         self.addCleanup(os.remove, self.shares_file)
 
-    def test_ssc_netapp_mirrored(self):
+    def test_tc14_ssc_netapp_mirrored(self):
         """Test netapp_mirrored."""
         name = 'mirrored'
         self.addCleanup(self._restart_cinder)
@@ -246,7 +246,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_mirrored': 'true'})
 
-    def test_ssc_netapp_mirrored_neg(self):
+    def test_tc15_ssc_netapp_mirrored_neg(self):
         """Negative test for netapp_mirrored."""
         name = 'mirrored'
         self.addCleanup(self._restart_cinder)
@@ -255,7 +255,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_mirrored': 'true'})
 
-    def test_ssc_netapp_unmirrored(self):
+    def test_tc16_ssc_netapp_unmirrored(self):
         """Test netapp_unmirrored."""
         name = 'unmirrored'
         self.addCleanup(self._restart_cinder)
@@ -266,7 +266,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_unmirrored': 'true'})
 
-    def test_ssc_netapp_unmirrored_neg(self):
+    def test_tc17_ssc_netapp_unmirrored_neg(self):
         """Negative test for netapp_unmirrored."""
         name = 'unmirrored'
         self.addCleanup(self._restart_cinder)
@@ -276,7 +276,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_unmirrored': 'true'})
 
-    def test_ssc_netapp_dedup(self):
+    def test_tc18_ssc_netapp_dedup(self):
         """Test netapp_dedup."""
         name = 'dedup'
         self.addCleanup(self._restart_cinder)
@@ -286,7 +286,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_dedup': 'true'})
 
-    def test_ssc_netapp_dedup_neg(self):
+    def test_tc19_ssc_netapp_dedup_neg(self):
         """Negative test for netapp_dedup."""
         name = 'dedup'
         self.addCleanup(self._restart_cinder)
@@ -295,7 +295,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_dedup': 'true'})
 
-    def test_ssc_netapp_nodedup(self):
+    def test_tc20_ssc_netapp_nodedup(self):
         """Test netapp_nodedup."""
         name = 'nodedup'
         self.addCleanup(self._restart_cinder)
@@ -305,7 +305,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_nodedup': 'true'})
 
-    def test_ssc_netapp_nodedup_neg(self):
+    def test_tc21_ssc_netapp_nodedup_neg(self):
         """Negative test for netapp_nodedup."""
         name = 'nodedup'
         self.addCleanup(self._restart_cinder)
@@ -314,7 +314,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_nodedup': 'true'})
 
-    def test_ssc_netapp_compressed(self):
+    def test_tc22_ssc_netapp_compression(self):
         """Test netapp_compressed."""
         name = 'compression'
         self.addCleanup(self._restart_cinder)
@@ -324,7 +324,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_compression': 'true'})
 
-    def test_ssc_netapp_compressed_neg(self):
+    def test_tc23_ssc_netapp_compression_neg(self):
         """Negative test for netapp_compressed."""
         name = 'compression'
         self.addCleanup(self._restart_cinder)
@@ -333,7 +333,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_compression': 'true'})
 
-    def test_ssc_netapp_nocompressed(self):
+    def test_tc24_ssc_netapp_nocompression(self):
         """Test netapp_nocompressed."""
         name = 'nocompression'
         self.addCleanup(self._restart_cinder)
@@ -343,7 +343,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_nocompression': 'true'})
 
-    def test_ssc_netapp_nocompressed_neg(self):
+    def test_tc25_ssc_netapp_nocompression_neg(self):
         """Negative test for netapp_nocompressed."""
         name = 'nocompression'
         self.addCleanup(self._restart_cinder)
@@ -352,7 +352,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_nocompression': 'true'})
 
-    def test_ssc_netapp_thin_provisioned(self):
+    def test_tc26_ssc_netapp_thin_provisioned(self):
         """Test netapp_thin_provisioned."""
         name = 'thinprovisioned'
         self.addCleanup(self._restart_cinder)
@@ -362,7 +362,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_thin_provisioned': 'true'})
 
-    def test_ssc_netapp_thin_provisioned_neg(self):
+    def test_tc27_ssc_netapp_thin_provisioned_neg(self):
         """Negative test for netapp_thin_provisioned."""
         name = 'thinprovisioned'
         self.addCleanup(self._restart_cinder)
@@ -371,7 +371,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test_negative(name, **{'netapp_thin_provisioned': 'true'})
 
-    def test_ssc_netapp_thick_provisioned(self):
+    def test_tc28_ssc_netapp_thick_provisioned(self):
         """Test netapp_thick_provisioned."""
         name = 'thickprovisioned'
         self.addCleanup(self._restart_cinder)
@@ -381,7 +381,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._restart_cinder()
         self._ssc_test(name, name, **{'netapp_thick_provisioned': 'true'})
 
-    def test_ssc_netapp_thick_provisioned_neg(self):
+    def test_tc29_ssc_netapp_thick_provisioned_neg(self):
         """Negative test for netapp_thick_provisioned."""
         name = 'thickprovisioned'
         self.addCleanup(self._restart_cinder)
@@ -445,7 +445,7 @@ class NetAppSSCTest(base.BaseVolumeV1AdminTest):
         self._ssc_test('vol-type-qos', name, **{'netapp:qos_policy_group':
                                                 'p2'})
 
-    def test_ssc_netapp_mixed(self):
+    def test_tc30_ssc_netapp_mixed(self):
         """Test test_ssc_netapp_mixed_unqualified."""
         name = 'mixed'
         self.addCleanup(self._restart_cinder)
