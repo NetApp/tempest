@@ -273,7 +273,7 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
         base_vol = self._create_volume()
         image = self._upload_to_image(base_vol)
         vol1 = self._create_volume_from_image(image['image_id'])
-        time.sleep(5)
+        time.sleep(10)
         vol2 = self._create_volume_from_image(image['image_id'])
         self.cinder_client.wait_for_volume_status(vol1['id'], 'available')
         self.cinder_client.wait_for_volume_status(vol2['id'], 'available')
