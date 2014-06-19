@@ -50,3 +50,7 @@ class ShareNetworkActivationFailed(exceptions.TempestException):
 
 class ShareNetworkDeactivationFailed(exceptions.TempestException):
     message = "Share-network with id %(sn_id)s failed to deactivate"
+
+class AccessGroupAccessTypeNotSpecified(exceptions.TempestException):
+    message = 'Access Group does not have a type'
+

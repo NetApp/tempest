@@ -606,3 +606,87 @@ class SharesClient(rest_client.RestClient):
     def delete_volume_type_extra_spec(self, vol_type_id, extra_spec_name):
         uri = "types/%s/extra_specs/%s" % (vol_type_id, extra_spec_name)
         return self.delete(uri)
+
+############### Access Groups
+
+    def list_access_groups(self, tenant_id):
+        uri = '%s/access-groups' % tenant_id
+        resp, body = self.get(uri)
+        return resp, self._parse_resp(body)
+
+    def list_access_groups_detail(self, tenant_id, params=None):
+        uri = '%s/access-groups/detail' % tenant_id
+        if params:
+            uri += "?%s" % urllib.urlencode(params)
+        resp, body = self.get(uri)
+        return resp, self._parse_resp(body)
+
+    def get_access_group(self, tenant_id, access_group_id):
+        uri = '%s/access-groups/%s' % tenant_id, access_group_id
+        resp, body = self.get(uri)
+        return resp, self._parse_resp(body)
+
+    def create_access_group(self, access_type, name=None,
+                            description=None, entries={}):
+        if name is None:
+            name = rand_name('tempest-created-access-group')
+        if description is None:
+            description = rand_name('tempest-created-access-group-desc')
+        if access_type is None:
+            raise share_exceptions.AccessGroupAccessTypeNotSpecified()
+        post_body = {
+            'access-group': {
+                'description': description,
+                'name': name,
+                'type': access_type,
+                'entries': entries
+            }
+        }
+        body = json.dumps(post_body)
+        resp, body = self.post('/access-groups', body)
+        return resp, self._parse_resp(body)
+
+    def update_access_group(self, access_group_id, **kwargs):
+        put_body = json.dumps({'access-group': kwargs})
+        resp, body = self.put('access-groups/%s' % access_group_id, put_body)
+        return resp, self._parse_resp(body)
+
+    def delete_access_group(self, tenant_id, access_group_id):
+        uri = '%s/access-groups/%s' % tenant_id, access_group_id
+        return self.delete(uri)
+
+    def add_access_group_entry(self, tenant_id, access_group_id, **kwargs):
+        post_body = json.dumps({'entry:': kwargs})
+        resp, body = self.post('%s/access-groups/%s/entries' % tenant_id,
+                              access_group_id, post_body)
+        return resp, self._parse_resp(body)
+
+    def delete_access_group_entry(self, tenant_id, access_group_id, entry_id):
+        uri = ('%s/access_groups/%s/entries/%s' % tenant_id, access_group_id,
+              entry_id)
+        return self.delete(uri)
+
+    def associate_access_group_to_share(self, tenant_id, share_id,
+                                        access_group_id, access_type='group'):
+        post_body = {
+            'os-allow_access': {
+                'access_to': access_group_id,
+                'access_type': access_type
+            }
+        }
+        body = json.dumps(post_body)
+        resp, body = self.post('%s/shares/%s/action' % tenant_id, share_id,
+                               body)
+        return resp, self._parse_resp(body)
+
+    def remove_access_group_from_share(self, tenant_id, share_id,
+                                       access_group_id):
+        uri = '%s/shares/%s/action' % tenant_id, share_id
+        post_body = {
+            'os-deny_access': {
+                'access_id': access_group_id
+            }
+        }
+        body = json.dumps(post_body)
+        resp, body = self.post(uri, body)
+        return resp, self._parse_resp(body)
