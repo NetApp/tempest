@@ -17,16 +17,18 @@ import base64
 import binascii
 import ConfigParser
 import json
-import os
 import random
-import requests
 import time
 import uuid
+import subprocess
 
+import requests
+import re
 from tempest.api.volume import base
 from tempest.common.utils import data_utils
 from tempest.openstack.common import log as logging
 from tempest import config
+
 
 CONF = config.CONF
 
@@ -180,6 +182,7 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
         path = "/storage-systems/%s/volume-mappings" % self.system_id
         data = {'mappableObjectId': volume.get('volumeRef'), 'targetId':
                 host.get('hostRef'), 'lun': lun_id}
+        print "data=%s" % data
         mapping = self._send_message(path, 'POST', data)
         return mapping.json()
 
@@ -243,15 +246,84 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
                                                    % volume_id)
         self.assertEqual(server_id, volume['attachments'][0]['server_id'])
 
-    def _create_volume_from_image(self, image_id, size=1):
-        """Create a cinder volume."""
-        vol_name = data_utils.rand_name('Volume')
-        resp, volume = self.cinder_client.create_volume(size,
-                                                        display_name=vol_name,
-                                                        imageRef=image_id)
-        self.addCleanup(self.cinder_client.delete_volume, volume['id'])
-        self.assertEqual(202, resp.status)
-        return volume
+    def _get_eseries_volume_preferred_controller_id(self, volref):
+        """Returns the preferred controller (1 or 2)."""
+        # label = convert_uuid_to_es_fmt(volume['id'])
+        # print "label=%s" % label
+        #volref = volume.get('volumeRef')
+        path = "/storage-systems/%s/volumes/%s" % (self.system_id, volref)
+        response = self._send_message(path)
+        self.assertLess(response.status_code, 300)
+        volinfo = response.json()
+        preferredcontroller = volinfo['preferredControllerId']
+        return preferredcontroller
+
+    def _get_iscsi_target_ips_by_controller(self, preferredcontroller):
+        """Returns a list of iscsi target ips for a controller"""
+        path = "/storage-systems/%s/iscsi/target-settings/" % self.system_id
+        response = self._send_message(path)
+        self.assertLess(response.status_code, 300)
+        iscsitargets = response.json()
+        ips = []
+        for port in iscsitargets['portals']:
+            if port['groupTag'] == int(preferredcontroller):
+                addr = port['ipAddress']
+                #print "addr=%s" % addr
+                if addr['addressType'] == 'ipv4':
+                    #print "addr=%s" % addr
+                    ips.append(addr['ipv4Address'])
+        print '\n'
+        print "targetips=%s" % ips
+        return ips
+
+    def _change_volume_ownership(self, volumeref, controllerid):
+        """Changes the preferred controller of a volume"""
+        path = "/storage-systems/%s/symbol/assignVolumeOwnership" % (self.system_id)
+        data = { "volumeRef": volumeref,
+                 "manager": controllerid}
+        print "data for vol ownership chg=%s" % data
+        response = self._send_message(path, 'POST', data)
+        self.assertEqual(response.status_code, 200)
+        return response
+
+    def _get_alternate_controller(self, preferredcontroller):
+        prefix = preferredcontroller[:-1]
+        suffix = preferredcontroller[-1]
+        newsuffix = None
+        if preferredcontroller[-1] == '1':
+            newsuffix = "2"
+        else:
+            newsuffix = "1"
+        longcontrollerstr = str(prefix) + str(newsuffix)
+        shortcontrollerstr = str(newsuffix)
+        print "suffix=%s" % newsuffix
+        return shortcontrollerstr, longcontrollerstr
+
+    def _get_current_controller(self, preferredcontroller):
+        prefix = preferredcontroller[:-1]
+        suffix = preferredcontroller[-1]
+        newsuffix = None
+        if preferredcontroller[-1] == '1':
+            newsuffix = "1"
+        else:
+            newsuffix = "2"
+        longcontrollerstr = str(prefix) + str(newsuffix)
+        shortcontrollerstr = str(newsuffix)
+        return shortcontrollerstr, longcontrollerstr
+
+    def _verify_mapped_path(self, targetips):
+        path = "/dev/disk/by-path/"
+        #print "path=%s" % path
+        mappings = [subprocess.check_output(["ls", path])]
+        #print mappings
+        for m in mappings:
+            for ip in targetips:
+                result=re.findall(ip, m)
+                if m:
+                    print "targetip %s found in %s" % (targetips, path)
+                    return True
+                else:
+                    return False
 
     def test_tc1_attach_lun_while_already_mapped(self):
         """Attach a pre-mapped lun to a nova instance."""
@@ -278,6 +350,26 @@ class NetAppEseriesTest(base.BaseVolumeV2Test):
         self.cinder_client.wait_for_volume_status(vol1['id'], 'available')
         self.cinder_client.wait_for_volume_status(vol2['id'], 'available')
 
+    def test_tc35_verify_preferred_path(self):
+        """Verifies that the mapped path is to the correct controller"""
+        server = self._create_server()
+        volume = self._create_volume()
+        volinfo = self._get_eseries_volume(volume.get('id'))
+        volumeref = volinfo.get('volumeRef')
+        self.assertIsNotNone(volumeref)
+        #find preferred controller from volume info
+        preferredcontroller = self._get_eseries_volume_preferred_controller_id(volumeref)
+        #get alternate controller
+        shortcontrollerstr, longcontrollerstr = self._get_current_controller(preferredcontroller)
+        #get list of target ips for the preferred controller
+        targetips = self._get_iscsi_target_ips_by_controller(shortcontrollerstr)
+        # skip changing owner until bug resolved with web proxy api
+        #response = self._change_volume_ownership(volumeref, longcontrollerstr)
+        self._attach_volume(server, volume)
+        self._verify_volume_attached_to_server(volume['id'], server['id'])
+        preferredcontroller = self._get_eseries_volume_preferred_controller_id(volumeref)
+        self._get_eseries_volume(volume.get('id'))
+        self._verify_mapped_path(targetips)
 
 def encode_hex_to_base32(hex_string):
     """Encodes hex to base32 bit as per RFC4648."""
